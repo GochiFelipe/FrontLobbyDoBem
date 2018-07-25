@@ -39,6 +39,10 @@ export default {
     justify-content: flex-start;
     align-items: center;
 }
+.none{
+    background-color: white;
+    color:gray;
+}
 .danger{
     background-color: red;
 }

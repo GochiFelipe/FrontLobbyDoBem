@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Login from '@/components/Login'
 import Dashboard from '@/components/Dashboard'
+import Atividades from '@/components/Atividades'
 
 Vue.use(Router)
 const authUser = JSON.parse(localStorage.getItem('userAuth'))
@@ -18,6 +19,18 @@ const router = new Router({
       path: '/dashboard',
       name: 'dashboard',
       component: Dashboard,
+      beforeEnter (to, from, next) {
+        if (authUser !== null && authUser.token) {
+          next()
+        } else {
+          next('/login')
+        }
+      }
+    },
+    {
+      path: '/atividades',
+      name: 'atividades',
+      component: Atividades,
       beforeEnter (to, from, next) {
         if (authUser !== null && authUser.token) {
           next()

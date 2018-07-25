@@ -69,6 +69,7 @@ import modalForm from './shared/modal/modalForm.vue'
 import { required, minLength, email } from 'vuelidate/lib/validators'
 import User from '../domain/user/User.js'
 import UserService from '../domain/user/UserService.js'
+import PersonService from '../domain/person/PersonService.js'
 
 export default {
   components: {
@@ -99,9 +100,9 @@ export default {
     },
     passwordErrors () {
       const errors = []
-      if (!this.$v.email.$dirty) return errors
-      !this.$v.email.email && errors.push('Must be valid Password')
-      !this.$v.email.required && errors.push('Password is required')
+      if (!this.$v.password.$dirty) return errors
+      !this.$v.password.password && errors.push('Must be valid Password')
+      !this.$v.password.required && errors.push('Password is required')
       return errors
     }
   },
@@ -112,13 +113,23 @@ export default {
       this.user.username = this.email
       this.user.password = this.password
       const authUser = {}
+      const person = {}
       this.service.login(this.user).then((res) => {
         if (res.status === 200) {
           authUser.data = res.data
           authUser.token = res.data.access_token
           this.$store.state.isLoggedIn = true
+          this.errors = []
           window.localStorage.setItem('userAuth', JSON.stringify(authUser))
-          this.$router.push('dashboard')
+          this.service.findByEmail(this.user.username).then((res) => {
+            if (res.status === 200) {
+              this.personService.findPersonForUser(res.data.id).then((res) => {
+                person.data = res.data
+                window.localStorage.setItem('person', JSON.stringify(person))
+              })
+            }
+          })
+          this.$router.push('/dashboard')
         } else {
           this.$store.state.isLoggedIn = false
         }
@@ -130,8 +141,6 @@ export default {
       this.$v.$reset()
       this.name = ''
       this.email = ''
-      this.select = null
-      this.checkbox = false
     },
     showPassword (type) {
       if (this.Locked) {
@@ -146,6 +155,7 @@ export default {
 
   created () {
     this.service = new UserService()
+    this.personService = new PersonService()
   }
 }
 </script>

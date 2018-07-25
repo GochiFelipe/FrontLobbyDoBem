@@ -5,11 +5,11 @@
     </main> -->
     <v-app>
       <v-toolbar dark
-        color="light-blue darken-3"
+        color="cyan darken-4"
         dense
         fixed
         app
-        extension-height="65px"
+        height="70"
       >
         <v-toolbar-side-icon 
         v-if="this.$router.currentRoute.name !== 'login'"
@@ -25,14 +25,33 @@
         app
         v-if="this.$router.currentRoute.name !== 'login'"
       >
+        <v-toolbar flat>
+          <v-avatar
+          size="36px">
+            <img >
+          </v-avatar>
+          <v-list>
+            <v-list-tile>
+              <v-list-tile-title class="title">
+                {{ person.data.url }}
+                {{ person.data.name }} {{ person.data.lastname }}
+              </v-list-tile-title>
+            </v-list-tile>
+          </v-list>
+        </v-toolbar>
+
+        <v-divider></v-divider>
+
       </v-navigation-drawer>
       <v-content>
         <router-view></router-view>
       </v-content>
-      <v-footer height="auto" color="light-blue darken-3"
+      <v-footer 
+      color="cyan darken-4"
       dense
       fixed
-      app>
+      height="60"
+      >
         <div class="div-logo-sinn">
           <img class="logo-sinn" src="./assets/logo-rodape-sinn.png">
         </div>
@@ -46,8 +65,13 @@ export default {
   name: 'app',
   data () {
     return {
-      drawer: false
+      drawer: false,
+      person: {}
     }
+  },
+  created () {
+    this.person = JSON.parse(localStorage.getItem('person'))
+    console.log(this.person.data)
   }
 }
 </script>
@@ -77,14 +101,14 @@ main {
 }
 @media (min-width: 426px) and (max-width: 768px){
   img{
-    width: 55%;
+    width: 70%;
     height: 55%;
     margin-top: 1.75%;
   }
 }
 @media (min-width: 769px){
   img{
-    width: 50%;
+    width: 70%;
     height: 65%;
     margin-top: 1.75%;
   }
@@ -97,6 +121,4 @@ main {
   width: 55px;
   height: 35px;
 } */
-
-
 </style>
