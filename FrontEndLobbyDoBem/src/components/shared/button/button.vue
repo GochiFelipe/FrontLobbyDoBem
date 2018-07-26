@@ -43,6 +43,14 @@ export default {
     background-color: white;
     color:gray;
 }
+.close{
+    background-color: #cacaca;
+    color: white;
+}
+.save{
+    background-color: #4AB6D3;
+    color: white;
+}
 .danger{
     background-color: red;
 }

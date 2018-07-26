@@ -5,7 +5,7 @@
     </main> -->
     <v-app>
       <v-toolbar dark
-        color="cyan darken-4"
+        class="menu"
         dense
         fixed
         app
@@ -47,7 +47,7 @@
         <router-view></router-view>
       </v-content>
       <v-footer 
-      color="cyan darken-4"
+      class="menu"
       dense
       fixed
       height="60"
@@ -116,6 +116,10 @@ main {
 
 .div-logo-sinn{
   margin-left: 10px;
+}
+
+.menu{
+  background-color: #004D61 !important;
 }
 /* .logo-sinn{
   width: 55px;

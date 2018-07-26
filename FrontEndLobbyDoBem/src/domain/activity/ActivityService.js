@@ -12,4 +12,22 @@ export default class ActivityService {
       }
     })
   }
+
+  saveActivity (activity) {
+    return Axios.post(urlDev + '/' + person.data.personId, activity, {
+      headers: {
+        'Authorization': 'bearer ' + tokenUser.token,
+        'Content-Type': 'application/json'
+      }
+    })
+  }
+
+  deleteActivity (id) {
+    return Axios.delete(urlDev + '/' + id, {
+      headers: {
+        'Authorization': 'bearer ' + tokenUser.token,
+        'Content-Type': 'application/json'
+      }
+    })
+  }
 }
