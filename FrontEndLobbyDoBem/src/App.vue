@@ -43,13 +43,12 @@
         <v-divider></v-divider>
 
       </v-navigation-drawer>
-      <v-content>
+      <v-content class="content">
         <router-view></router-view>
       </v-content>
       <v-footer 
-      class="menu"
+      class="menu footer"
       dense
-      fixed
       height="60"
       >
         <div class="div-logo-sinn">
@@ -91,6 +90,7 @@ body {
 main {
   text-align: center;
 }
+
 
 @media (max-width: 425px) {
   img{

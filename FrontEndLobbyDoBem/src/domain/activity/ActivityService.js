@@ -4,8 +4,26 @@ const tokenUser = JSON.parse(localStorage.getItem('userAuth'))
 const person = JSON.parse(localStorage.getItem('person'))
 
 export default class ActivityService {
-  listForPerson (id) {
+  listForPerson () {
     return Axios.get(urlDev + '/list/' + person.data.personId, {
+      headers: {
+        'Authorization': 'bearer ' + tokenUser.token,
+        'Content-Type': 'application/json'
+      }
+    })
+  }
+
+  listForPersonAndEnable () {
+    return Axios.get(urlDev + '/enable/' + person.data.personId, {
+      headers: {
+        'Authorization': 'bearer ' + tokenUser.token,
+        'Content-Type': 'application/json'
+      }
+    })
+  }
+
+  findById (id) {
+    return Axios.get(urlDev + '/' + id, {
       headers: {
         'Authorization': 'bearer ' + tokenUser.token,
         'Content-Type': 'application/json'
@@ -24,6 +42,15 @@ export default class ActivityService {
 
   deleteActivity (id) {
     return Axios.delete(urlDev + '/' + id, {
+      headers: {
+        'Authorization': 'bearer ' + tokenUser.token,
+        'Content-Type': 'application/json'
+      }
+    })
+  }
+
+  editActivity (activity) {
+    return Axios.put(urlDev + '/update', activity, {
       headers: {
         'Authorization': 'bearer ' + tokenUser.token,
         'Content-Type': 'application/json'

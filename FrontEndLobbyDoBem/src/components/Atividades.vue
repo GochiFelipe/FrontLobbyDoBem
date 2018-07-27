@@ -23,12 +23,14 @@
                     v-model="title"
                     label="Titulo"
                     required
+                    :disabled="disabled"
                     ></v-text-field>
                     <v-textarea
                       v-model="description"
                       label="Descrição"
                       counter="255"
                       rows="3"
+                      :disabled="disabled"
                     ></v-textarea>
                     <v-textarea
                       v-model="goals"
@@ -36,6 +38,7 @@
                       required
                       counter="255"
                       rows="3"
+                      :disabled="disabled"
                     ></v-textarea>
                     <div class="divTextCityAndState">
                     <v-select
@@ -49,6 +52,7 @@
                       class="stateText stateNome"
                       item-text="nome"
                       item-value="id"
+                      :disabled="disabled"
                     ></v-select>
                     <v-select
                       :items="states"
@@ -61,12 +65,14 @@
                       class="stateText stateSigla"
                       item-text="sigla"
                       item-value="id"
+                      :disabled="disabled"
                     ></v-select>
                     <v-text-field
                       v-model="city"
                       label="Cidade"
                       required
                       class="cityText"
+                      :disabled="disabled"
                     ></v-text-field>
                     </div>
                     <v-select
@@ -79,11 +85,13 @@
                       persistent-hint
                       item-text="nome"
                       return-object
+                      :disabled="disabled"
                     ></v-select>
                     <v-text-field
                       v-model="typeRegister"
                       label="Tipos de Registro"
                       required
+                      :disabled="disabled"
                     ></v-text-field>
                     <!---<v-select
                       :items="registerTypes"
@@ -96,12 +104,12 @@
                     ></v-select>-->
                     <div class="divButtonsModal">
                       <appButton 
-                        type="submit"
                         styleButton="save"
                         alt="createActivity"
                         title="Salvar" 
                         class="button-component-save"
                         :icon="false"
+                        v-if="disabled == 0"
                         @click.native="saveActivity()"/>
                       <appButton 
                         styleButton="close"
@@ -109,7 +117,7 @@
                         title="Fechar" 
                         class="button-component-close"
                         :icon="false"
-                        @click.native="dialog = false"/>
+                        @click.native="cleanActivity()"/>
                     </div>
                 </v-card-text>
             </v-card>
@@ -138,12 +146,12 @@
             <template slot="items" slot-scope="props">
                 <tr>
                     <td>{{ props.item.title }}</td>
-                    <td>{{ props.item.description }}</td>
-                    <td>{{ props.item.goals }}</td>
+                    <!---<td>{{ props.item.description }}</td>
+                    <td>{{ props.item.goals }}</td>-->
                     <td>{{ props.item.city }}</td>
                     <td>{{ props.item.state }}</td>
-                    <td>{{ props.item.typeRegister }}</td>
-                    <td>
+                    <!---<td>{{ props.item.typeRegister }}</td>-->
+                    <td class="candidatesTd">
                       <ul style="list-style:none;">
                         <li v-for="candidatos in props.item.candidates" 
                         :key="candidatos.id">
@@ -151,7 +159,10 @@
                         </li>
                       </ul>
                     </td>
-                    <td class="tdIcons">
+                    <td class="tdIcons" @click="detailActivity(props.item)">
+                        <v-icon class="icons">search</v-icon>
+                    </td>
+                    <td class="tdIcons" @click="editActivity(props.item)">
                         <v-icon class="icons">create</v-icon>
                     </td>
                     <td class="tdIcons" @click="deleteActivity(props.item)">
@@ -182,11 +193,15 @@ export default {
     activitys: [],
     states: [],
     Candidateslist: [],
+    candidates: '',
+    candidateId: '',
     title: '',
     description: '',
     goals: '',
     state: '',
     city: '',
+    dateCriation: '',
+    dateUpdate: '',
     candadetes: [],
     typeRegister: '',
     pagination: {
@@ -197,14 +212,14 @@ export default {
         text: 'Titulo',
         value: 'title'
       },
-      {
+      /* {
         text: 'Descrição',
         value: 'description'
       },
       {
         text: 'Metas',
         value: 'goals'
-      },
+      }, */
       {
         text: 'Cidade',
         value: 'city'
@@ -213,13 +228,17 @@ export default {
         text: 'Estado',
         value: 'state'
       },
-      {
+      /* {
         text: 'Tipo de Registro',
         value: 'typeRegister'
-      },
+      },  */
       {
         text: 'Candidatos',
         value: 'candidates'
+      },
+      {
+        text: 'Visualizar',
+        value: 'detail'
       },
       {
         text: 'Editar',
@@ -234,11 +253,12 @@ export default {
         value: 'share'
       }
     ],
-    activity: new Activity()
+    activity: new Activity(),
+    disabled: false
   }),
   created () {
     this.service = new ActivityService()
-    this.service.listForPerson().then((res) => {
+    this.service.listForPersonAndEnable().then((res) => {
       res.data.forEach(element => {
         this.activitys.push(element)
       })
@@ -265,7 +285,24 @@ export default {
         this.pagination.descending = false
       }
     },
+    cleanActivity () {
+      this.activityId = ''
+      this.title = ''
+      this.description = ''
+      this.goals = ''
+      this.city = ''
+      this.state = ''
+      this.typeRegister = ''
+      this.candidates = []
+      this.dialog = false
+      this.disabled = false
+    },
+    detailActivity (item) {
+      this.editActivity(item)
+      this.disabled = true
+    },
     saveActivity () {
+      this.activity.activityId = this.activityId
       this.activity.title = this.title
       this.activity.description = this.description
       this.activity.goals = this.goals
@@ -273,15 +310,38 @@ export default {
       this.activity.state = this.state
       this.activity.typeRegister = this.typeRegister
       this.activity.candidates = this.candidates
+      this.activity.dateCriation = this.dateCriation
       this.service.saveActivity(this.activity).then((res) => {
-        this.dialog = false
-        this.activitys.push(res.data)
+        if (this.activity.activityId != null) {
+          let object = this.activitys.find(obj => obj.activityId === this.activity.activityId)
+          let index = this.activitys.indexOf(object)
+          this.activitys.splice(index, 1)
+          this.activitys.push(res.data)
+        } else {
+          this.activitys.push(res.data)
+        }
+        this.cleanActivity()
       })
     },
     deleteActivity (item) {
       this.service.deleteActivity(item.activityId).then((res) => {
         let index = this.activitys.indexOf(item)
         this.activitys.splice(index, 1)
+      })
+    },
+    editActivity (item) {
+      this.service.findById(item.activityId).then((res) => {
+        this.activityId = res.data.activityId
+        this.title = res.data.title
+        this.description = res.data.description
+        this.goals = res.data.goals
+        this.city = res.data.city
+        this.state = res.data.state
+        this.typeRegister = res.data.typeRegister
+        this.candidates = res.data.candidates
+        this.dateCriation = res.data.dateCriation
+        this.dateUpdate = res.data.dateUpdate
+        this.dialog = true
       })
     }
   }
@@ -291,16 +351,22 @@ export default {
 <style scoped>
 @media (max-width: 425px) {
     .table{
-        display: flex;
-        flex-direction: column;
-        overflow-x: auto;
+      display: flex;
+      flex-direction: column;
+      overflow-x: auto;
+      margin-bottom: 5%;
+
     }
     th, td {
-      text-align: left;
+      text-align: center;
       padding: 8px;
     }
     td .tdIcons{
       text-align: center;
+    }
+    .tdIcons{
+      padding: 0px !important;
+      width: 50px;
     }
     tr {
       border-top: 1px solid #CCCCCC;
@@ -360,6 +426,9 @@ export default {
     .stateNome{
       display: none;
     }
+    .candidatesTd{
+      padding: 0px 10px !important;
+    }
 }
 @media (min-width: 426px) and (max-width: 768px){
     .table{
@@ -368,6 +437,7 @@ export default {
         grid-template-rows: 100%;
         grid-template-columns: 5% 90% 5%;
         overflow-x: auto;
+        margin-bottom: 5%;
     }
     .dataTable{
         grid-row-start: 1;
@@ -444,6 +514,9 @@ export default {
     .stateNome{
       display: none;
     }
+    .candidatesTd{
+      width: 15%;
+    }
 }
 @media (min-width: 769px){
     .table{
@@ -452,6 +525,7 @@ export default {
         grid-template-rows: 100%;
         grid-template-columns: 2.5% 95% 2.5%;
         overflow-x: auto;
+        margin-bottom: 5%;
     }
     .dataTable{
         grid-row-start: 1;
@@ -525,6 +599,9 @@ export default {
     }
     .stateSigla{
       display: none;
+    }
+    .candidatesTd{
+      width: 15%;
     }
 }
 .icons{
