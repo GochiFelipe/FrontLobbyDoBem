@@ -1,7 +1,17 @@
 import Axios from 'axios'
-var urlDev = 'http://localhost:8081/activity'
+
+function getHostName (url) {
+  var match = url.match(/:\/\/(www[0-9]?\.)?(.[^/:]+)/i)
+  if (match != null && match.length > 2 && typeof match[2] === 'string' && match[2].length > 0) {
+    return match[2]
+  } else {
+    return null
+  }
+}
+
+var urlDev = 'http://' + getHostName(window.location.href) + ':8081/activity'
 const tokenUser = JSON.parse(localStorage.getItem('userAuth'))
-const person = JSON.parse(localStorage.getItem('person'))
+const person = JSON.parse(localStorage.getItem('userAuth'))
 
 export default class ActivityService {
   listForPerson () {
@@ -13,8 +23,8 @@ export default class ActivityService {
     })
   }
 
-  listForPersonAndEnable () {
-    return Axios.get(urlDev + '/enable/' + person.data.personId, {
+  listForPersonAndEnable (id) {
+    return Axios.get(urlDev + '/enable/' + id, {
       headers: {
         'Authorization': 'bearer ' + tokenUser.token,
         'Content-Type': 'application/json'
@@ -31,8 +41,8 @@ export default class ActivityService {
     })
   }
 
-  saveActivity (activity) {
-    return Axios.post(urlDev + '/' + person.data.personId, activity, {
+  saveActivity (activity, id) {
+    return Axios.post(urlDev + '/' + id, activity, {
       headers: {
         'Authorization': 'bearer ' + tokenUser.token,
         'Content-Type': 'application/json'

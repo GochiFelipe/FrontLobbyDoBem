@@ -1,6 +1,6 @@
 <template>
   <div class="login">
-    <v-form class="form-component-login" @submit.prevent="login()" lazy-validation>
+    <v-form class="form-component-login" @submit.stop.prevent="login()" lazy-validation>
       <v-text-field
         prepend-icon="account_circle"
         v-model="email"
@@ -86,8 +86,7 @@ export default {
     type: 'password',
     Locked: true,
     email: '',
-    password: '',
-    user: new User()
+    password: ''
   }),
 
   computed: {
@@ -101,7 +100,6 @@ export default {
     passwordErrors () {
       const errors = []
       if (!this.$v.password.$dirty) return errors
-      !this.$v.password.password && errors.push('Must be valid Password')
       !this.$v.password.required && errors.push('Password is required')
       return errors
     }
@@ -113,30 +111,29 @@ export default {
       this.user.username = this.email
       this.user.password = this.password
       const authUser = {}
-      const person = {}
-      this.service.login(this.user).then((res) => {
-        if (res.status === 200) {
-          authUser.data = res.data
-          authUser.token = res.data.access_token
-          this.$store.state.isLoggedIn = true
-          this.errors = []
-          window.localStorage.setItem('userAuth', JSON.stringify(authUser))
-          this.service.findByEmail(this.user.username).then((res) => {
-            if (res.status === 200) {
-              this.personService.findPersonForUser(res.data.id).then((res) => {
-                person.data = res.data
-                window.localStorage.setItem('person', JSON.stringify(person))
-              })
-            }
-          })
-          this.$router.push('/dashboard')
-        } else {
-          this.$store.state.isLoggedIn = false
-        }
+      this.service.login(this.user).then((loginRes) => {
+        authUser.data = loginRes.data
+        authUser.token = loginRes.data.access_token
+        authUser.refreshToken = loginRes.data.refresh_token
+        authUser.email = this.user.username
+        this.errors = []
+        localStorage.setItem('userAuth', JSON.stringify(authUser))
+        // this.$router.push('atividades')
+        window.location.href = 'http://' + this.getHostName(window.location.href) + '/atividades'
       }).catch(function (err) {
         console.log(err.data)
       })
     },
+
+    getHostName (url) {
+      var match = url.match(/:\/\/(www[0-9]?\.)?(.[^/:]+)/i)
+      if (match != null && match.length > 2 && typeof match[2] === 'string' && match[2].length > 0) {
+        return match[2]
+      } else {
+        return null
+      }
+    },
+
     clear () {
       this.$v.$reset()
       this.name = ''
@@ -156,6 +153,7 @@ export default {
   created () {
     this.service = new UserService()
     this.personService = new PersonService()
+    this.user = new User()
   }
 }
 </script>

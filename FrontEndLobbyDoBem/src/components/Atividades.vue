@@ -183,12 +183,15 @@ import ActivityService from '../domain/activity/ActivityService.js'
 import button from './shared/button/button.vue'
 import StateService from '../domain/state/StateService.js'
 import CandidateService from '../domain/candidates/CandidateService.js'
+import PersonService from '../domain/person/PersonService.js'
+import UserService from '../domain/user/UserService.js'
 
 export default {
   components: {
     appButton: button
   },
   data: () => ({
+    personId: '',
     dialog: false,
     activitys: [],
     states: [],
@@ -257,10 +260,18 @@ export default {
     disabled: false
   }),
   created () {
+    this.servicePerson = new PersonService()
+    this.serviceUser = new UserService()
     this.service = new ActivityService()
-    this.service.listForPersonAndEnable().then((res) => {
-      res.data.forEach(element => {
-        this.activitys.push(element)
+    this.serviceUser.findByEmailLocal().then((userPersonRes) => {
+      console.log(userPersonRes)
+      this.servicePerson.findPersonForUser(userPersonRes.data.id).then((personRes) => {
+        this.personId = personRes.data.personId
+        this.service.listForPersonAndEnable(personRes.data.personId).then((res) => {
+          res.data.forEach(element => {
+            this.activitys.push(element)
+          })
+        })
       })
     })
     this.stateService = new StateService()
@@ -311,7 +322,7 @@ export default {
       this.activity.typeRegister = this.typeRegister
       this.activity.candidates = this.candidates
       this.activity.dateCriation = this.dateCriation
-      this.service.saveActivity(this.activity).then((res) => {
+      this.service.saveActivity(this.activity, this.personId).then((res) => {
         if (this.activity.activityId != null) {
           let object = this.activitys.find(obj => obj.activityId === this.activity.activityId)
           let index = this.activitys.indexOf(object)
